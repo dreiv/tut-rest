@@ -5,6 +5,7 @@ interface Message {
   text: string;
 }
 
+// Existing DOM Elements
 const messageList = document.getElementById("message-list") as HTMLUListElement;
 const statusContainer = document.getElementById(
   "status-container",
@@ -14,7 +15,20 @@ const newMessageInput = document.getElementById(
   "new-message-text",
 ) as HTMLInputElement;
 
+// New Dialog DOM Elements
+const editDialog = document.getElementById("edit-dialog") as HTMLDialogElement;
+const editDialogForm = document.getElementById(
+  "edit-dialog-form",
+) as HTMLFormElement;
+const editMessageInput = document.getElementById(
+  "edit-message-text",
+) as HTMLInputElement;
+const cancelEditBtn = document.getElementById(
+  "cancel-edit-btn",
+) as HTMLButtonElement;
+
 let messages: Message[] = [];
+let currentlyEditingId: string | null = null;
 
 function renderStatus(message: string, isError = false) {
   if (!statusContainer) return;
@@ -106,6 +120,7 @@ async function handleCreateMessage(e: SubmitEvent) {
 
 async function handleDelete(id: string) {
   if (!id) return;
+
   if (!confirm("Are you sure you want to delete this message?")) return;
 
   renderStatus("Deleting message...");
@@ -116,7 +131,7 @@ async function handleDelete(id: string) {
 
     if (!response.ok) throw new Error("Failed to delete message");
 
-    messages = messages.filter((m) => m.id !== id);
+    messages = messages.filter((m) => String(m.id) !== id);
     renderMessages();
     renderStatus("");
   } catch (error) {
@@ -125,13 +140,27 @@ async function handleDelete(id: string) {
   }
 }
 
-async function handleEdit(id: string) {
+function handleEdit(id: string) {
   if (!id) return;
-  const msg = messages.find((m) => m.id === id);
+
+  const msg = messages.find((m) => String(m.id) === id);
   if (!msg) return;
 
-  const newText = prompt("Edit message text:", msg.text);
-  if (newText === null || newText === "") return; // User cancelled or entered empty string
+  currentlyEditingId = id;
+  editMessageInput.value = msg.text;
+  editDialog.showModal(); // Safely triggers modal window overlay
+}
+
+// Event handler for submitting the Edit Modal
+editDialogForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentlyEditingId) return;
+
+  const newText = editMessageInput.value;
+  if (!newText) return;
+
+  const id = currentlyEditingId;
+  editDialog.close();
 
   renderStatus("Updating message...");
   try {
@@ -144,14 +173,24 @@ async function handleEdit(id: string) {
     if (!response.ok) throw new Error("Failed to update message");
 
     const updatedMsg = await response.json();
-    messages = messages.map((m) => (m.id === id ? updatedMsg : m));
+
+    // Maps list ensuring strict ID type evaluation doesn't break update
+    messages = messages.map((m) => (String(m.id) === id ? updatedMsg : m));
     renderMessages();
     renderStatus("");
   } catch (error) {
     console.error("Update error:", error);
     renderStatus("Failed to update message.", true);
+  } finally {
+    currentlyEditingId = null;
   }
-}
+});
+
+// Event handler for cancelling out of the Edit Modal
+cancelEditBtn?.addEventListener("click", () => {
+  editDialog.close();
+  currentlyEditingId = null;
+});
 
 messageForm?.addEventListener("submit", handleCreateMessage);
 

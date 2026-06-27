@@ -28,6 +28,32 @@
 
       <ul id="message-list"></ul>
     </div>
+
+    <!-- Edit Message Dialog Modal -->
+    <dialog id="edit-dialog">
+      <form method="dialog" id="edit-dialog-form">
+        <h3>Edit Message</h3>
+        <input type="text" id="edit-message-text" required />
+        <div
+          style="
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+          "
+        >
+          <button
+            type="button"
+            id="cancel-edit-btn"
+            style="background-color: var(--gray)"
+          >
+            Cancel
+          </button>
+          <button type="submit">Save Changes</button>
+        </div>
+      </form>
+    </dialog>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

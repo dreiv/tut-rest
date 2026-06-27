@@ -138,3 +138,34 @@ button:hover {
 .loading-state {
   color: var(--gray);
 }
+
+/* ========================================== */
+/* Native HTML Dialog / Modal Styling         */
+/* ========================================== */
+dialog {
+  background-color: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-lg);
+  max-width: 400px;
+  width: 100%;
+}
+
+/* Smooth dark overlay behind the modal dialog */
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+/* The edit input within the dialog box */
+#edit-message-text {
+  width: 100%;
+  padding: var(--space-sm);
+  margin-top: var(--space-md);
+  background-color: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
