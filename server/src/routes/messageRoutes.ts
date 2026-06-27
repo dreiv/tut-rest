@@ -1,7 +1,7 @@
-import express from "express";
-import { getMessages } from "../controllers/messageController.js";
+import { Router } from "express";
+import { getMessages } from "@/controllers/messageController.js";
 
-const router = express.Router();
+const router = Router();
 
 router.get("/messages", getMessages);
 
