@@ -40,7 +40,7 @@ function renderStatus(message: string, isError = false) {
 async function fetchMessages() {
   renderStatus("Loading messages...");
   try {
-    const response = await fetch("/api/messages");
+    const response = await fetch("/api/v1/messages");
     if (!response.ok)
       throw new Error(`Server responded with status: ${response.status}`);
     messages = await response.json();
