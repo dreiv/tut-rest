@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "db:seed": "tsx src/models/seed.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,9 +15,11 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "better-sqlite3": "^12.11.1",
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.6",
     "@types/node": "^20.0.0",
     "tsx": "^4.0.0",
