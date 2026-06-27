@@ -9,6 +9,12 @@ const messageList = document.getElementById("message-list") as HTMLUListElement;
 const statusContainer = document.getElementById(
   "status-container",
 ) as HTMLDivElement;
+const messageForm = document.getElementById("message-form") as HTMLFormElement;
+const newMessageInput = document.getElementById(
+  "new-message-text",
+) as HTMLInputElement;
+
+let messages: Message[] = [];
 
 function renderStatus(message: string, isError = false) {
   if (!statusContainer) return;
@@ -17,35 +23,15 @@ function renderStatus(message: string, isError = false) {
     : "";
 }
 
-async function fetchAndRenderMessages() {
-  if (messageList) messageList.innerHTML = "";
+async function fetchMessages() {
   renderStatus("Loading messages...");
-
   try {
     const response = await fetch("/api/messages");
-
-    if (!response.ok) {
+    if (!response.ok)
       throw new Error(`Server responded with status: ${response.status}`);
-    }
-
-    const messages: Message[] = await response.json();
-
+    messages = await response.json();
     renderStatus("");
-
-    if (messages.length === 0) {
-      renderStatus("No messages available. Add some via your API!");
-      return;
-    }
-
-    messages.forEach((msg) => {
-      const li = document.createElement("li");
-      li.className = "message-item";
-      li.innerHTML = `
-        <span class="msg-text">${msg.text}</span>
-        <small class="msg-id">ID: ${msg.id}</small>
-      `;
-      messageList.appendChild(li);
-    });
+    renderMessages();
   } catch (error) {
     console.error("Fetch error:", error);
     renderStatus(
@@ -55,4 +41,118 @@ async function fetchAndRenderMessages() {
   }
 }
 
-fetchAndRenderMessages();
+function renderMessages() {
+  if (!messageList) return;
+  messageList.innerHTML = "";
+
+  if (messages.length === 0) {
+    renderStatus("No messages available. Add some via your API!");
+    return;
+  }
+
+  messages.forEach((msg) => {
+    const li = document.createElement("li");
+    li.className = "message-item";
+    li.innerHTML = `
+      <span class="msg-text">${msg.text}</span>
+      <div>
+        <small class="msg-id">ID: ${msg.id}</small>
+        <button class="edit-btn" data-id="${msg.id}">Edit</button>
+        <button class="delete-btn" data-id="${msg.id}">Delete</button>
+      </div>
+    `;
+    messageList.appendChild(li);
+  });
+
+  // Attach event listeners to buttons
+  messageList.querySelectorAll(".edit-btn").forEach((btn) => {
+    const button = btn as HTMLButtonElement;
+    button.addEventListener("click", () => handleEdit(button.dataset.id || ""));
+  });
+
+  messageList.querySelectorAll(".delete-btn").forEach((btn) => {
+    const button = btn as HTMLButtonElement;
+    button.addEventListener("click", () =>
+      handleDelete(button.dataset.id || ""),
+    );
+  });
+}
+
+async function handleCreateMessage(e: SubmitEvent) {
+  e.preventDefault();
+  const text = newMessageInput.value;
+  if (!text) return;
+
+  renderStatus("Creating message...");
+  try {
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!response.ok) throw new Error("Failed to create message");
+
+    const newMessage = await response.json();
+    messages.push(newMessage);
+    renderMessages();
+    renderStatus("");
+    newMessageInput.value = "";
+  } catch (error) {
+    console.error("Create error:", error);
+    renderStatus("Failed to create message.", true);
+  }
+}
+
+async function handleDelete(id: string) {
+  if (!id) return;
+  if (!confirm("Are you sure you want to delete this message?")) return;
+
+  renderStatus("Deleting message...");
+  try {
+    const response = await fetch(`/api/messages/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) throw new Error("Failed to delete message");
+
+    messages = messages.filter((m) => m.id !== id);
+    renderMessages();
+    renderStatus("");
+  } catch (error) {
+    console.error("Delete error:", error);
+    renderStatus("Failed to delete message.", true);
+  }
+}
+
+async function handleEdit(id: string) {
+  if (!id) return;
+  const msg = messages.find((m) => m.id === id);
+  if (!msg) return;
+
+  const newText = prompt("Edit message text:", msg.text);
+  if (newText === null || newText === "") return; // User cancelled or entered empty string
+
+  renderStatus("Updating message...");
+  try {
+    const response = await fetch(`/api/messages/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: newText }),
+    });
+
+    if (!response.ok) throw new Error("Failed to update message");
+
+    const updatedMsg = await response.json();
+    messages = messages.map((m) => (m.id === id ? updatedMsg : m));
+    renderMessages();
+    renderStatus("");
+  } catch (error) {
+    console.error("Update error:", error);
+    renderStatus("Failed to update message.", true);
+  }
+}
+
+messageForm?.addEventListener("submit", handleCreateMessage);
+
+fetchMessages();

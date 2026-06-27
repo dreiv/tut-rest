@@ -7,9 +7,25 @@
   </head>
   <body>
     <div id="app">
-      <h1>Tut-REST Messages</h1>
+      <h1 class="title">Tut-REST Messages</h1>
 
       <div id="status-container"></div>
+
+      <section class="form-section">
+        <h2>Add New Message</h2>
+        <form id="message-form">
+          <input
+            type="text"
+            id="new-message-text"
+            placeholder="Enter message text..."
+            required
+          />
+          <button type="submit" id="add-btn">Add Message</button>
+        </form>
+      </section>
+
+      <hr />
+
       <ul id="message-list"></ul>
     </div>
     <script type="module" src="/src/main.ts"></script>
