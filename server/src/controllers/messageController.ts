@@ -13,6 +13,11 @@ export const getMessages = (_: Request, res: Response) => {
 export const getMessageById = (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "Invalid ID format" });
+    }
+
     const message = MessageModel.getById(id);
 
     if (!message) {
@@ -44,6 +49,11 @@ export const createMessage = (req: Request, res: Response) => {
 export const updateMessage = (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "Invalid ID format" });
+    }
+
     const { text } = req.body;
 
     if (!text || typeof text !== "string") {
@@ -66,6 +76,11 @@ export const updateMessage = (req: Request, res: Response) => {
 export const deleteMessage = (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "Invalid ID format" });
+    }
+
     const wasDeleted = MessageModel.delete(id);
 
     if (!wasDeleted) {
