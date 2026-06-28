@@ -37,6 +37,5 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
-server/src/generated/
-!server/src/generated/swagger.json
+server/src/generated/routes.ts
 .turbo
