@@ -11,9 +11,13 @@
 
   /* FONT */
   --FF: "Nunito", sans-serif;
-  --FS: clamp(1.75rem, 3vh, 2.25rem);
-  --FS-SM: clamp(1.25rem, 2vh, 1.5rem);
-  --FS-XL: 3rem;
+  --FS: clamp(
+    1rem,
+    3vh,
+    1.25rem
+  ); /* Scaled down slightly for better mobile fit */
+  --FS-SM: clamp(1rem, 2vh, 1.15rem);
+  --FS-XL: clamp(1.75rem, 5vw, 2.5rem);
 
   /* Spacing Tokens */
   --space-xs: 0.25rem;
@@ -32,12 +36,14 @@
   }
 }
 
+/* Mobile First Base Styles */
 body {
   font: var(--FS) var(--FF);
   display: flex;
   flex-direction: column;
   margin: 0 auto;
-  padding: var(--space-xl) var(--space-lg);
+  /* Reduced default padding for mobile screens */
+  padding: var(--space-md) var(--space-sm);
   background-color: var(--bg);
   color: var(--text);
   max-width: 60rem;
@@ -46,15 +52,16 @@ body {
 
 .title {
   font-size: var(--FS-XL);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
+  text-align: center;
 }
 
 .form-section {
   background-color: var(--bg-alt);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border-radius: 8px;
   border: 1px solid var(--border);
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .form-section h2 {
@@ -62,28 +69,34 @@ body {
   margin-bottom: var(--space-md);
 }
 
+/* Stacks input and button vertically on small screens */
 #message-form {
   display: flex;
-  gap: var(--space-md);
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 #new-message-text {
-  flex: 1;
-  padding: var(--space-sm);
+  width: 100%;
+  padding: 12px; /* larger tap area */
   border: 1px solid var(--border);
   border-radius: 4px;
   background-color: var(--bg);
   color: var(--text);
+  box-sizing: border-box;
 }
 
 button {
-  padding: var(--space-sm) var(--space-md);
+  padding: 12px var(--space-md); /* larger touch target */
   background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 button:hover {
@@ -98,37 +111,42 @@ button:hover {
 .message-item {
   background-color: var(--bg-alt);
   padding: var(--space-md);
-  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-sm);
+  border-radius: 6px;
+  border: 1px solid var(--border);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column; /* Stack text and buttons on narrow screens */
+  gap: var(--space-md);
 }
 
 .msg-text {
   font-size: var(--FS-SM);
+  word-break: break-word; /* Prevents long text from breaking layout */
 }
 
-.msg-id {
-  color: var(--gray);
-  font-size: 0.8rem;
+/* Container for Emoji Buttons */
+.action-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end; /* Push to the right side */
 }
 
+/* Specific styling for icon buttons */
 .edit-btn,
 .delete-btn {
-  margin-left: var(--space-md);
-  padding: 4px 8px;
-  font-size: 0.8rem;
+  /* 44px min-height/width is the Apple Human Interface Guideline standard for touch targets */
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 1.2rem;
+  padding: 0;
+}
+
+.edit-btn {
+  background-color: var(--gray);
 }
 
 .delete-btn {
   background-color: #dc3545;
-}
-
-#edit-container {
-  margin-top: var(--space-lg);
-  padding: var(--space-md);
-  border: 2px solid var(--accent);
-  border-radius: 8px;
 }
 
 .error-state {
@@ -147,25 +165,65 @@ dialog {
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: var(--space-lg);
+  padding: var(--space-md);
+  width: 90%; /* Responsive width for mobile */
   max-width: 400px;
-  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Smooth dark overlay behind the modal dialog */
 dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(2px);
 }
 
-/* The edit input within the dialog box */
 #edit-message-text {
   width: 100%;
-  padding: var(--space-sm);
+  padding: 12px;
   margin-top: var(--space-md);
   background-color: var(--bg-alt);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 4px;
   box-sizing: border-box;
+}
+
+/* ========================================== */
+/* Media Queries for Desktop / Larger Screens */
+/* ========================================== */
+@media (min-width: 600px) {
+  body {
+    padding: var(--space-xl) var(--space-lg);
+  }
+
+  .title {
+    text-align: left;
+  }
+
+  .form-section {
+    padding: var(--space-lg);
+  }
+
+  /* Un-stack the form for desktop */
+  #message-form {
+    flex-direction: row;
+  }
+
+  #new-message-text {
+    flex: 1;
+  }
+
+  /* Keep messages side-by-side on desktop */
+  .message-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  dialog {
+    padding: var(--space-lg);
+  }
 }

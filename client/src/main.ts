@@ -67,12 +67,13 @@ function renderMessages() {
   messages.forEach((msg) => {
     const li = document.createElement("li");
     li.className = "message-item";
+
+    // Removed ID text and updated buttons to use emojis
     li.innerHTML = `
       <span class="msg-text">${msg.text}</span>
-      <div>
-        <small class="msg-id">ID: ${msg.id}</small>
-        <button class="edit-btn" data-id="${msg.id}">Edit</button>
-        <button class="delete-btn" data-id="${msg.id}">Delete</button>
+      <div class="action-buttons">
+        <button class="edit-btn" data-id="${msg.id}" aria-label="Edit" title="Edit">✏️</button>
+        <button class="delete-btn" data-id="${msg.id}" aria-label="Delete" title="Delete">🗑️</button>
       </div>
     `;
     messageList.appendChild(li);
@@ -99,7 +100,7 @@ async function handleCreateMessage(e: SubmitEvent) {
 
   renderStatus("Creating message...");
   try {
-    const response = await fetch("/api/messages", {
+    const response = await fetch("/api/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -125,7 +126,7 @@ async function handleDelete(id: string) {
 
   renderStatus("Deleting message...");
   try {
-    const response = await fetch(`/api/messages/${id}`, {
+    const response = await fetch(`/api/v1/messages/${id}`, {
       method: "DELETE",
     });
 
@@ -164,7 +165,7 @@ editDialogForm?.addEventListener("submit", async (e) => {
 
   renderStatus("Updating message...");
   try {
-    const response = await fetch(`/api/messages/${id}`, {
+    const response = await fetch(`/api/v1/messages/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text: newText }),
