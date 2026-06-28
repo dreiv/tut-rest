@@ -5,12 +5,12 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsoa spec-and-routes && tsx watch src/index.ts",
-    "build": "tsoa spec-and-routes && tsc",
+    "tsoa:gen": "npx tsoa spec-and-routes",
+    "dev": "npx tsoa spec-and-routes && npx tsx watch src/index.ts",
+    "build": "npx tsoa spec-and-routes && npx tsc",
     "start": "node dist/index.js",
-    "tsoa:gen": "tsoa spec-and-routes",
     "gen-client": "openapi-typescript ./src/generated/swagger.json -o ../client/src/api-types.d.ts",
-    "db:seed": "tsx src/models/seed.ts"
+    "db:seed": "npx tsx src/models/seed.ts"
   },
   "keywords": [],
   "author": "",

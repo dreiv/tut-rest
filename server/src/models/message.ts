@@ -1,10 +1,6 @@
+import { Message } from "@/controllers/messageController.js";
 import db from "./db.js";
 import { randomUUID } from "crypto";
-
-export interface Message {
-  id: string;
-  text: string;
-}
 
 export const MessageModel = {
   getAll: (): Message[] => {

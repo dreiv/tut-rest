@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔄 Regenerating client types..."
+npm run gen-client
+
+echo "🛡️ Type-checking frontend and backend..."
+npm run build -w server
+# Add your frontend type check here too, e.g., npm run build -w client or npx tsc -w client
