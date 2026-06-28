@@ -9,6 +9,7 @@
     "dev:client": "npm run dev -w client",
     "dev:server": "npm run dev -w server",
     "db:seed": "npm run db:seed -w server",
+    "gen-client": "openapi-typescript ./server/src/generated/swagger.json -o ./client/src/api-types.d.ts",
     "dev": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"client,server\" --prefix-colors \"cyan,magenta\" \"npm run dev:client\" \"npm run dev:server\""
   },
   "devDependencies": {

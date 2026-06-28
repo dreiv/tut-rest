@@ -1,28 +1,33 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Message API server utilizing Express, SQLite, and tsoa.",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "db:seed": "tsx src/models/seed.ts",
-    "build": "tsc",
+    "dev": "tsoa spec-and-routes && tsx watch src/index.ts",
+    "build": "tsoa spec-and-routes && tsc",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tsoa:gen": "tsoa spec-and-routes",
+    "gen-client": "openapi-typescript ./src/generated/swagger.json -o ../client/src/api-types.d.ts",
+    "db:seed": "tsx src/models/seed.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "better-sqlite3": "^12.11.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "swagger-ui-express": "^5.0.1",
+    "tsoa": "^6.2.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.6",
-    "@types/node": "^20.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^22.0.0",
+    "@types/swagger-ui-express": "^4.1.8",
+    "openapi-typescript": "^7.13.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
   }
 }

@@ -1,11 +1,9 @@
 import "./style.css";
+import type { components } from "./api-types.d.ts";
 
-interface Message {
-  id: string;
-  text: string;
-}
+type Message = components["schemas"]["Message"];
+type MessageCreateRequest = components["schemas"]["MessageCreateRequest"];
 
-// Existing DOM Elements
 const messageList = document.getElementById("message-list") as HTMLUListElement;
 const statusContainer = document.getElementById(
   "status-container",
@@ -15,7 +13,6 @@ const newMessageInput = document.getElementById(
   "new-message-text",
 ) as HTMLInputElement;
 
-// New Dialog DOM Elements
 const editDialog = document.getElementById("edit-dialog") as HTMLDialogElement;
 const editDialogForm = document.getElementById(
   "edit-dialog-form",
@@ -43,7 +40,7 @@ async function fetchMessages() {
     const response = await fetch("/api/v1/messages");
     if (!response.ok)
       throw new Error(`Server responded with status: ${response.status}`);
-    messages = await response.json();
+    messages = (await response.json()) as Message[];
     renderStatus("");
     renderMessages();
   } catch (error) {
@@ -68,7 +65,6 @@ function renderMessages() {
     const li = document.createElement("li");
     li.className = "message-item";
 
-    // Removed ID text and updated buttons to use emojis
     li.innerHTML = `
       <span class="msg-text">${msg.text}</span>
       <div class="action-buttons">
@@ -79,7 +75,6 @@ function renderMessages() {
     messageList.appendChild(li);
   });
 
-  // Attach event listeners to buttons
   messageList.querySelectorAll(".edit-btn").forEach((btn) => {
     const button = btn as HTMLButtonElement;
     button.addEventListener("click", () => handleEdit(button.dataset.id || ""));
@@ -99,16 +94,18 @@ async function handleCreateMessage(e: SubmitEvent) {
   if (!text) return;
 
   renderStatus("Creating message...");
+  const payload: MessageCreateRequest = { text };
+
   try {
     const response = await fetch("/api/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) throw new Error("Failed to create message");
 
-    const newMessage = await response.json();
+    const newMessage = (await response.json()) as Message;
     messages.push(newMessage);
     renderMessages();
     renderStatus("");
@@ -149,10 +146,9 @@ function handleEdit(id: string) {
 
   currentlyEditingId = id;
   editMessageInput.value = msg.text;
-  editDialog.showModal(); // Safely triggers modal window overlay
+  editDialog.showModal();
 }
 
-// Event handler for submitting the Edit Modal
 editDialogForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!currentlyEditingId) return;
@@ -164,18 +160,19 @@ editDialogForm?.addEventListener("submit", async (e) => {
   editDialog.close();
 
   renderStatus("Updating message...");
+  const payload: MessageCreateRequest = { text: newText };
+
   try {
     const response = await fetch(`/api/v1/messages/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: newText }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) throw new Error("Failed to update message");
 
-    const updatedMsg = await response.json();
+    const updatedMsg = (await response.json()) as Message;
 
-    // Maps list ensuring strict ID type evaluation doesn't break update
     messages = messages.map((m) => (String(m.id) === id ? updatedMsg : m));
     renderMessages();
     renderStatus("");
@@ -187,7 +184,6 @@ editDialogForm?.addEventListener("submit", async (e) => {
   }
 });
 
-// Event handler for cancelling out of the Edit Modal
 cancelEditBtn?.addEventListener("click", () => {
   editDialog.close();
   currentlyEditingId = null;
