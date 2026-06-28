@@ -1,0 +1,20 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "server#build:types": {
+      "outputs": ["src/generated/swagger.json"],
+      "inputs": ["src/controllers/**/*.ts", "src/models/**/*.ts"]
+    },
+    "client#build:types": {
+      "dependsOn": ["server#build:types"],
+      "outputs": ["src/api-types.d.ts"]
+    },
+    "build:types": {
+      "dependsOn": ["^build:types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

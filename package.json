@@ -5,21 +5,15 @@
     "client",
     "server"
   ],
+  "packageManager": "npm@11.12.1",
   "scripts": {
-    "dev:client": "wait-on http-get://localhost:3000/api-docs && npm run dev -w client",
-    "dev:server": "npm run dev -w server",
-    "watch:server-types": "chokidar \"./server/src/controllers/**/*.ts\" \"./server/src/models/**/*.ts\" -c \"npm run tsoa:gen -w server\"",
-    "watch:client-types": "chokidar \"./server/src/generated/swagger.json\" -c \"npm run gen-client\"",
-    "gen-client": "openapi-typescript ./server/src/generated/swagger.json -o ./client/src/api-types.d.ts",
+    "dev": "turbo dev",
+    "build:types": "turbo run build:types",
     "db:seed": "npm run db:seed -w server",
-    "dev": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"client,server,tsoa,types\" --prefix-colors \"cyan,magenta,blue,yellow\" \"npm run dev:client\" \"npm run dev:server\" \"npm run watch:server-types\" \"npm run watch:client-types\"",
     "prepare": "husky"
   },
   "devDependencies": {
-    "chokidar": "^4.0.1",
-    "chokidar-cli": "^3.0.0",
-    "concurrently": "^10.0.3",
     "husky": "^9.1.7",
-    "wait-on": "^8.0.1"
+    "turbo": "^2.10.0"
   }
 }
