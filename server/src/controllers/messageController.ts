@@ -11,7 +11,7 @@ import {
   Response,
 } from "tsoa";
 import { MessageService } from "@/services/messageService.js";
-import { Message } from "@/models/message.js";
+import { Message } from "@/models/schema.js";
 
 export interface PaginatedMessagesResponse {
   data: Message[];

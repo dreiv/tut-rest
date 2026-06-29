@@ -1,5 +1,5 @@
 import { db } from "@/models/db.js";
-import { messages } from "@/models/message.js";
+import { messages } from "@/models/schema.js";
 import { eq, like, gte, and, asc, desc, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 

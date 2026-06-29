@@ -1,5 +1,5 @@
 import { db } from "./db.js";
-import { messages } from "./message.js";
+import { messages } from "./schema.js";
 import { randomUUID } from "crypto";
 import { faker } from "@faker-js/faker";
 
