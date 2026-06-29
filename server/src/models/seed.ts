@@ -1,26 +1,41 @@
 import { db } from "./db.js";
 import { messages } from "./message.js";
 import { randomUUID } from "crypto";
+import { faker } from "@faker-js/faker";
 
 export async function seedDatabase() {
   const existing = await db.select().from(messages);
 
   if (existing.length === 0) {
-    console.log("🌱 Database is empty. Seeding starter data with Drizzle...");
+    console.log("🌱 Generating 999 realistic mock records using Faker...");
 
-    const starterMessages = [
-      { id: randomUUID(), text: "Hello world! Welcome to tut-rest." },
-      { id: randomUUID(), text: "SQLite is running smoothly behind this API." },
-      {
+    const starterMessages = Array.from({ length: 999 }, (_, index) => {
+      let dynamicText = "";
+
+      if (index % 3 === 0) {
+        dynamicText = `[${faker.hacker.noun().toUpperCase()}] ${faker.hacker.phrase()}`;
+      } else if (index % 3 === 1) {
+        dynamicText = `Message from ${faker.person.fullName()}: "${faker.lorem.sentence()}"`;
+      } else {
+        dynamicText = `System Broadcast: ${faker.company.catchPhrase()} — ${faker.hacker.verb()} completed.`;
+      }
+
+      return {
         id: randomUUID(),
-        text: "Try using Postman or your client to delete this message!",
-      },
-    ];
+        text: dynamicText,
+      };
+    });
 
+    console.log("🚀 Batch-inserting Faker dataset into SQLite...");
     await db.insert(messages).values(starterMessages);
-    console.log("✅ Seeding complete!");
+
+    console.log(
+      `✅ Seeding complete! Added ${starterMessages.length} highly unique records.`,
+    );
   } else {
-    console.log("⚠️ Database already has data. Skipping seed.");
+    console.log(
+      `⚠️ Database already contains ${existing.length} records. Skipping seed.`,
+    );
   }
 }
 
