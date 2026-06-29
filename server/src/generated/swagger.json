@@ -53,10 +53,7 @@
 	"info": {
 		"title": "server",
 		"version": "1.0.0",
-		"description": "Message API server utilizing Express, SQLite, and tsoa.",
-		"license": {
-			"name": "ISC"
-		},
+		"description": "Message API server utilizing Express, SQLite, tsoa, and Drizzle ORM.",
 		"contact": {}
 	},
 	"paths": {
@@ -85,29 +82,12 @@
 			"post": {
 				"operationId": "CreateMessage",
 				"responses": {
-					"201": {
-						"description": "Created",
+					"200": {
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"$ref": "#/components/schemas/Message"
-										},
-										{
-											"$ref": "#/components/schemas/ErrorMessage"
-										}
-									]
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "Invalid request body",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/Message"
 								}
 							}
 						}
@@ -145,16 +125,6 @@
 											"$ref": "#/components/schemas/ErrorMessage"
 										}
 									]
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "Invalid ID format",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
 								}
 							}
 						}
@@ -203,16 +173,6 @@
 							}
 						}
 					},
-					"400": {
-						"description": "Invalid request body or ID format",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
-								}
-							}
-						}
-					},
 					"404": {
 						"description": "Message not found to update",
 						"content": {
@@ -224,7 +184,7 @@
 						}
 					}
 				},
-				"description": "Update message text",
+				"description": "Update an existing message text description",
 				"security": [],
 				"parameters": [
 					{
@@ -271,16 +231,6 @@
 											"$ref": "#/components/schemas/ErrorMessage"
 										}
 									]
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "Invalid ID format",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
 								}
 							}
 						}

@@ -1,35 +1,29 @@
-import db from "./db.js";
+import { db } from "./db.js";
+import { messages } from "./message.js";
 import { randomUUID } from "crypto";
 
-export function seedDatabase() {
-  const checkEmpty = db.prepare("SELECT COUNT(*) as count FROM messages");
-  const row = checkEmpty.get() as { count: number };
+export async function seedDatabase() {
+  const existing = await db.select().from(messages);
 
-  if (row.count === 0) {
-    console.log("🌱 Database is empty. Seeding starter data...");
+  if (existing.length === 0) {
+    console.log("🌱 Database is empty. Seeding starter data with Drizzle...");
 
-    const insertStmt = db.prepare(
-      "INSERT INTO messages (id, text) VALUES (?, ?)",
-    );
     const starterMessages = [
-      "Hello world! Welcome to tut-rest.",
-      "SQLite is running smoothly behind this API.",
-      "Try using Postman or your client to delete this message!",
+      { id: randomUUID(), text: "Hello world! Welcome to tut-rest." },
+      { id: randomUUID(), text: "SQLite is running smoothly behind this API." },
+      {
+        id: randomUUID(),
+        text: "Try using Postman or your client to delete this message!",
+      },
     ];
 
-    const tx = db.transaction(() => {
-      for (const text of starterMessages) {
-        insertStmt.run(randomUUID(), text);
-      }
-    });
-
-    tx();
+    await db.insert(messages).values(starterMessages);
     console.log("✅ Seeding complete!");
   } else {
-    console.log(
-      "⚠️ Database already has data. Skipping seed to prevent duplication.",
-    );
+    console.log("⚠️ Database already has data. Skipping seed.");
   }
 }
 
-seedDatabase();
+seedDatabase().catch((err) => {
+  console.error("❌ Seeding failed:", err);
+});

@@ -31,7 +31,7 @@ export interface paths {
         };
         /** @description Fetch a single message by ID */
         get: operations["GetMessageById"];
-        /** @description Update message text */
+        /** @description Update an existing message text description */
         put: operations["UpdateMessage"];
         post?: never;
         /** @description Remove a message */
@@ -97,22 +97,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created */
-            201: {
+            /** @description Ok */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Message"] | components["schemas"]["ErrorMessage"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["Message"];
                 };
             };
         };
@@ -135,15 +126,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Message"] | components["schemas"]["ErrorMessage"];
-                };
-            };
-            /** @description Invalid ID format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
                 };
             };
             /** @description Message not found */
@@ -181,15 +163,6 @@ export interface operations {
                     "application/json": components["schemas"]["Message"] | components["schemas"]["ErrorMessage"];
                 };
             };
-            /** @description Invalid request body or ID format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
-                };
-            };
             /** @description Message not found to update */
             404: {
                 headers: {
@@ -221,15 +194,6 @@ export interface operations {
                     "application/json": {
                         message: string;
                     } | components["schemas"]["ErrorMessage"];
-                };
-            };
-            /** @description Invalid ID format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
                 };
             };
             /** @description Message not found to delete */

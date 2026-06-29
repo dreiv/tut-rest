@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Message API server utilizing Express, SQLite, and tsoa.",
+  "description": "Message API server utilizing Express, SQLite, tsoa, and Drizzle ORM.",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -10,13 +10,13 @@
     "dev": "npm run tsoa:gen && tsx watch src/index.ts",
     "build": "npm run tsoa:gen && tsc",
     "start": "node dist/index.js",
-    "db:seed": "tsx src/models/seed.ts"
+    "db:seed": "tsx src/models/seed.ts",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^12.11.1",
+    "drizzle-orm": "^0.39.0",
     "express": "^5.2.1",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.2.1"
@@ -26,6 +26,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "@types/swagger-ui-express": "^4.1.8",
+    "drizzle-kit": "^0.30.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.0"
   }
