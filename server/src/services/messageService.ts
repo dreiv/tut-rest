@@ -39,53 +39,46 @@ export class MessageService {
       const cleanSearch = search.trim().replace(/[^a-zA-Z0-9 ]/g, "");
       if (cleanSearch.length > 0) {
         safeFtsQuery = `"${cleanSearch}"*`;
-        conditions.push(
-          sql`${messages.id} IN (
-            SELECT id
-            FROM messages_fts
-            WHERE messages_fts MATCH ${safeFtsQuery}
-          )`,
-        );
       }
     }
 
-    let countQuery = db.select({ total: count() }).from(messages);
-    if (conditions.length > 0) {
-      countQuery = countQuery.where(and(...conditions)) as typeof countQuery;
-    }
-    const countResult = await countQuery;
-    const totalRecords = countResult[0]?.total || 0;
+    let dataQueryObj;
+    let countQueryObj;
 
-    let query;
     if (safeFtsQuery) {
-      query = db
+      const ftsJoin = sql`messages_fts`;
+
+      dataQueryObj = db
         .select({
           id: messages.id,
           category: messages.category,
           priority: messages.priority,
           isRead: messages.isRead,
           createdAt: messages.createdAt,
-          text: sql<string>`(
-        SELECT snippet(messages_fts, 1, '<mark>', '</mark>', '...', 15)
-        FROM messages_fts
-        WHERE messages_fts.id = ${messages.id} AND messages_fts MATCH ${safeFtsQuery}
-        LIMIT 1
-      )`,
+          text: sql<string>`snippet(messages_fts, 1, '<mark>', '</mark>', '...', 15)`,
         })
-        .from(messages);
-    } else {
-      query = db.select().from(messages);
-    }
+        .from(messages)
+        .innerJoin(ftsJoin, sql`messages_fts.id = ${messages.id}`)
+        .where(and(sql`messages_fts MATCH ${safeFtsQuery}`, ...conditions));
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as typeof query;
+      countQueryObj = db
+        .select({ total: count() })
+        .from(messages)
+        .innerJoin(ftsJoin, sql`messages_fts.id = ${messages.id}`)
+        .where(and(sql`messages_fts MATCH ${safeFtsQuery}`, ...conditions));
+    } else {
+      dataQueryObj = db.select().from(messages);
+      countQueryObj = db.select({ total: count() }).from(messages);
+
+      if (conditions.length > 0) {
+        dataQueryObj.where(and(...conditions));
+        countQueryObj.where(and(...conditions));
+      }
     }
 
     let sortOrder;
     if (safeFtsQuery && !sortBy) {
-      sortOrder = asc(
-        sql`(SELECT rank FROM messages_fts WHERE messages_fts.id = ${messages.id} AND messages_fts MATCH ${safeFtsQuery})`,
-      );
+      sortOrder = asc(sql`messages_fts.rank`);
     } else {
       const activeSortBy = sortBy || "createdAt";
       const sortColumn =
@@ -94,7 +87,14 @@ export class MessageService {
     }
 
     const offset = (page - 1) * limit;
-    const data = await query.orderBy(sortOrder).limit(limit).offset(offset);
+    dataQueryObj.orderBy(sortOrder).limit(limit).offset(offset);
+
+    const [countResult, data] = await Promise.all([
+      countQueryObj,
+      dataQueryObj,
+    ]);
+
+    const totalRecords = countResult[0]?.total || 0;
 
     return {
       data,

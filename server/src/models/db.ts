@@ -20,7 +20,9 @@ sqlite.exec(`
     DELETE FROM messages_fts WHERE id = old.id;
   END;
 
-  CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
-    UPDATE messages_fts SET text = new.text WHERE id = old.id;
+  DROP TRIGGER IF EXISTS messages_au;
+  CREATE TRIGGER messages_au AFTER UPDATE ON messages BEGIN
+    DELETE FROM messages_fts WHERE id = old.id;
+    INSERT INTO messages_fts(id, text) VALUES (new.id, new.text);
   END;
 `);
