@@ -56,7 +56,27 @@ export class MessageService {
     const countResult = await countQuery;
     const totalRecords = countResult[0]?.total || 0;
 
-    let query = db.select().from(messages);
+    let query;
+    if (safeFtsQuery) {
+      query = db
+        .select({
+          id: messages.id,
+          category: messages.category,
+          priority: messages.priority,
+          isRead: messages.isRead,
+          createdAt: messages.createdAt,
+          text: sql<string>`(
+        SELECT snippet(messages_fts, 1, '<mark>', '</mark>', '...', 15)
+        FROM messages_fts
+        WHERE messages_fts.id = ${messages.id} AND messages_fts MATCH ${safeFtsQuery}
+        LIMIT 1
+      )`,
+        })
+        .from(messages);
+    } else {
+      query = db.select().from(messages);
+    }
+
     if (conditions.length > 0) {
       query = query.where(and(...conditions)) as typeof query;
     }
