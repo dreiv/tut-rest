@@ -15,26 +15,35 @@ export const rateLimiter = (
   return (req: Request, res: Response, next: NextFunction): void => {
     const ip = req.ip || req.socket.remoteAddress || "unknown";
 
-    const cacheKey = `ratelimit:${ip}:${req.method}:${req.originalUrl}`;
+    const cacheKey = `rl:${ip}:${req.method}:${req.path}`;
+
     const currentHits = rateLimitCache.get<number>(cacheKey) || 0;
+    const currentTtl = rateLimitCache.getTtl(cacheKey);
+
+    let remainingSeconds = windowSeconds;
+    if (currentTtl) {
+      remainingSeconds = Math.max(
+        1,
+        Math.round((currentTtl - Date.now()) / 1000),
+      );
+    }
+
+    res.setHeader("X-RateLimit-Limit", maxRequests);
+    res.setHeader(
+      "X-RateLimit-Remaining",
+      Math.max(0, maxRequests - currentHits - 1),
+    );
 
     if (currentHits >= maxRequests) {
-      console.warn(
-        `🛑 Rate limit breached [${currentHits}/${maxRequests}] by IP: ${ip} on ${req.originalUrl}`,
-      );
+      console.warn(`🛑 Rate limit enforced for ${ip} on path: ${req.path}`);
+      res.setHeader("Retry-After", remainingSeconds);
       res.status(429).json({
-        error: `Too many requests. Optimized threshold is ${maxRequests} requests per ${windowSeconds}s.`,
+        error: `Too many requests. Please try again in ${remainingSeconds} seconds.`,
       });
       return;
     }
 
-    const currentTtl = rateLimitCache.getTtl(cacheKey);
-
     if (currentTtl) {
-      const remainingSeconds = Math.max(
-        1,
-        Math.round((currentTtl - Date.now()) / 1000),
-      );
       rateLimitCache.set(cacheKey, currentHits + 1, remainingSeconds);
     } else {
       rateLimitCache.set(cacheKey, currentHits + 1, windowSeconds);
