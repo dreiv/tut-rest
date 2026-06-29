@@ -193,16 +193,43 @@ async function handleCreateMessage(e: SubmitEvent) {
   const text = newMessageInput.value.trim();
   if (!text) return;
 
-  renderStatus("Creating message safely...");
-  try {
-    await api.createMessage(text);
-    newMessageInput.value = "";
+  const tempId = `temp-${Date.now()}`;
+  const optimisticMessage: Message = {
+    id: tempId,
+    text: text,
+    category: "user",
+    isRead: false,
+    priority: 1,
+    createdAt: new Date().toISOString(),
+  };
 
-    state.meta.currentPage = 1;
-    loadMessages();
+  state.messages = [optimisticMessage, ...state.messages];
+  renderMessages();
+  newMessageInput.value = "";
+
+  try {
+    const response = await fetch("/api/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "idempotency-key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!response.ok) throw new Error("Failed to create message");
+
+    const savedMessage = (await response.json()) as Message;
+
+    state.messages = state.messages.map((m: Message) =>
+      m.id === tempId ? savedMessage : m,
+    );
   } catch (error) {
-    console.error("Creation workflow error captured:", error);
-    renderStatus("Failed to append message safely onto backend service.", true);
+    console.error("Creation error:", error);
+    state.messages = state.messages.filter((m: Message) => m.id !== tempId);
+    renderStatus("Failed to save message. Please try again.", true);
+  } finally {
+    renderMessages();
   }
 }
 
@@ -213,13 +240,26 @@ async function handleDelete(id: string) {
   )
     return;
 
-  renderStatus("Removing target record...");
+  const previousMessages = [...state.messages];
+
+  state.messages = state.messages.filter((m) => m.id !== id);
+  renderMessages();
+  renderStatus("Removing record...");
+
   try {
     await api.deleteMessage(id);
-    loadMessages(); // Refresh layout to adjust pagination limits
+
+    state.meta.totalRecords -= 1;
+    renderStatus("");
+    renderPaginationControls();
   } catch (error) {
-    console.error("Deletion task exception:", error);
-    renderStatus("Failed to clean target log item from dataset context.", true);
+    console.error("Deletion failed, rolling back:", error);
+    state.messages = previousMessages;
+    renderMessages();
+    renderStatus(
+      "Failed to delete message. Please check your connection.",
+      true,
+    );
   }
 }
 
