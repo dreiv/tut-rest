@@ -9,9 +9,11 @@ import {
   Body,
   Query,
   Response,
+  Middlewares,
 } from "tsoa";
 import { MessageService } from "@/services/messageService.js";
 import { Message } from "@/models/schema.js";
+import { idempotencyInterceptor } from "@/middlewares/idempotencyMiddleware.js";
 
 export interface PaginatedMessagesResponse {
   data: Message[];
@@ -80,6 +82,7 @@ export class MessageController extends Controller {
    * Create a new message
    */
   @Post("")
+  @Middlewares(idempotencyInterceptor)
   async createMessage(
     @Body() requestBody: MessageCreateRequest,
   ): Promise<Message> {

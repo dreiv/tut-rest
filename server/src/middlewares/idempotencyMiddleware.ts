@@ -13,10 +13,6 @@ export const idempotencyInterceptor = (
   res: Response,
   next: NextFunction,
 ): void => {
-  if (req.method !== "POST") {
-    return next();
-  }
-
   const cacheKey = req.header("idempotency-key");
 
   if (!cacheKey) {
@@ -29,7 +25,6 @@ export const idempotencyInterceptor = (
     console.log(
       `🎯 Idempotency Match Found! Replaying cached response for key: ${cacheKey}`,
     );
-
     res.setHeader("X-Cache-Lookup", "HIT - Idempotent Replay");
     res.status(cachedRecord.statusCode).json(JSON.parse(cachedRecord.body));
     return;
@@ -43,13 +38,11 @@ export const idempotencyInterceptor = (
         statusCode: res.statusCode,
         body: typeof body === "string" ? body : JSON.stringify(body),
       };
-
       idempotencyCache.set(cacheKey, responseData);
       console.log(
         `💾 Successfully cached fresh idempotent lifecycle response for key: ${cacheKey}`,
       );
     }
-
     return originalSend.call(this, body);
   };
 

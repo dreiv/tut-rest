@@ -4,13 +4,13 @@ import path from "path";
 import fs from "fs";
 
 import { RegisterRoutes } from "./generated/routes.js";
-import { idempotencyInterceptor } from "./middlewares/idempotencyMiddleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(idempotencyInterceptor);
+
+RegisterRoutes(app);
 
 const setupSwagger = () => {
   try {
@@ -35,8 +35,6 @@ const setupSwagger = () => {
 };
 
 setupSwagger();
-
-RegisterRoutes(app);
 
 app.use(
   (
