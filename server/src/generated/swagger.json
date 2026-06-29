@@ -14,11 +14,33 @@
 					},
 					"text": {
 						"type": "string"
+					},
+					"category": {
+						"type": "string",
+						"enum": [
+							"system",
+							"user",
+							"billing"
+						]
+					},
+					"priority": {
+						"type": "number",
+						"format": "double"
+					},
+					"isRead": {
+						"type": "boolean"
+					},
+					"createdAt": {
+						"type": "string"
 					}
 				},
 				"required": [
 					"id",
-					"text"
+					"text",
+					"category",
+					"priority",
+					"isRead",
+					"createdAt"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -75,9 +97,72 @@
 						}
 					}
 				},
-				"description": "Fetch all messages",
+				"description": "Fetch messages with support for search, categorization, range filtering, and custom sorting",
 				"security": [],
-				"parameters": []
+				"parameters": [
+					{
+						"in": "query",
+						"name": "search",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "category",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"system",
+								"user",
+								"billing"
+							]
+						}
+					},
+					{
+						"in": "query",
+						"name": "minPriority",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "isRead",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"in": "query",
+						"name": "sortBy",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"createdAt",
+								"priority"
+							]
+						}
+					},
+					{
+						"in": "query",
+						"name": "order",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"asc",
+								"desc"
+							]
+						}
+					}
+				]
 			},
 			"post": {
 				"operationId": "CreateMessage",

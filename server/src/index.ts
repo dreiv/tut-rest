@@ -1,6 +1,5 @@
 import express from "express";
 import * as swaggerUi from "swagger-ui-express";
-import fs from "fs";
 import path from "path";
 
 import { RegisterRoutes } from "./generated/routes.js";
@@ -10,21 +9,28 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-try {
-  const swaggerSpecPath = path.join(
-    process.cwd(),
-    "src",
-    "generated",
-    "swagger.json",
-  );
-  const swaggerDocument = JSON.parse(fs.readFileSync(swaggerSpecPath, "utf8"));
+const setupSwagger = async () => {
+  try {
+    const swaggerSpecPath = path.join(
+      process.cwd(),
+      "src",
+      "generated",
+      "swagger.json",
+    );
 
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-} catch (error) {
-  console.log(
-    "⚠️ Run 'npm run tsoa:gen' first to generate your API documentation UI.",
-  );
-}
+    const { default: swaggerDocument } = await import(swaggerSpecPath, {
+      with: { type: "json" },
+    });
+
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  } catch (error) {
+    console.log(
+      "⚠️ Run 'npm run tsoa:gen' first to generate your API documentation UI.",
+    );
+  }
+};
+
+await setupSwagger();
 
 RegisterRoutes(app);
 

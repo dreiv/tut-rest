@@ -7,6 +7,7 @@ import {
   Delete,
   Path,
   Body,
+  Query,
   Response,
 } from "tsoa";
 import { MessageService } from "@/services/messageService.js";
@@ -25,11 +26,25 @@ export class MessageController extends Controller {
   private messageService = new MessageService();
 
   /**
-   * Fetch all messages
+   * Fetch messages with support for search, categorization, range filtering, and custom sorting
    */
   @Get("")
-  public async getMessages(): Promise<Message[]> {
-    return this.messageService.getAll();
+  public async getMessages(
+    @Query() search?: string,
+    @Query() category?: "system" | "user" | "billing",
+    @Query() minPriority?: number,
+    @Query() isRead?: boolean,
+    @Query() sortBy?: "createdAt" | "priority",
+    @Query() order?: "asc" | "desc",
+  ): Promise<Message[]> {
+    return this.messageService.getAll({
+      search,
+      category,
+      minPriority,
+      isRead,
+      sortBy,
+      order,
+    });
   }
 
   /**
@@ -73,7 +88,7 @@ export class MessageController extends Controller {
       this.setStatus(404);
       return { error: "Message not found to update" };
     }
-    return { id, text: requestBody.text };
+    return { id, text: requestBody.text } as Message;
   }
 
   /**

@@ -7,7 +7,13 @@ export async function seedDatabase() {
   const existing = await db.select().from(messages);
 
   if (existing.length === 0) {
-    console.log("🌱 Generating 999 realistic mock records using Faker...");
+    console.log("🌱 Generating 999 rich mock records using Faker...");
+
+    const categories: ("system" | "user" | "billing")[] = [
+      "system",
+      "user",
+      "billing",
+    ];
 
     const starterMessages = Array.from({ length: 999 }, (_, index) => {
       let dynamicText = "";
@@ -23,14 +29,18 @@ export async function seedDatabase() {
       return {
         id: randomUUID(),
         text: dynamicText,
+        category: faker.helpers.arrayElement(categories),
+        priority: faker.number.int({ min: 1, max: 5 }),
+        isRead: faker.datatype.boolean(0.8),
+        createdAt: faker.date.past({ years: 0.25 }).toISOString(),
       };
     });
 
-    console.log("🚀 Batch-inserting Faker dataset into SQLite...");
+    console.log("🚀 Batch-inserting rich dataset into SQLite via Drizzle...");
     await db.insert(messages).values(starterMessages);
 
     console.log(
-      `✅ Seeding complete! Added ${starterMessages.length} highly unique records.`,
+      `✅ Seeding complete! Added ${starterMessages.length} highly unique records with filterable fields.`,
     );
   } else {
     console.log(

@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Fetch all messages */
+        /** @description Fetch messages with support for search, categorization, range filtering, and custom sorting */
         get: operations["GetMessages"];
         put?: never;
         /** @description Create a new message */
@@ -48,6 +48,12 @@ export interface components {
         Message: {
             id: string;
             text: string;
+            /** @enum {string} */
+            category: "system" | "user" | "billing";
+            /** Format: double */
+            priority: number;
+            isRead: boolean;
+            createdAt: string;
         };
         ErrorMessage: {
             error: string;
@@ -66,7 +72,14 @@ export type $defs = Record<string, never>;
 export interface operations {
     GetMessages: {
         parameters: {
-            query?: never;
+            query?: {
+                search?: string;
+                category?: "system" | "user" | "billing";
+                minPriority?: number;
+                isRead?: boolean;
+                sortBy?: "createdAt" | "priority";
+                order?: "asc" | "desc";
+            };
             header?: never;
             path?: never;
             cookie?: never;
