@@ -3,11 +3,13 @@ import * as swaggerUi from "swagger-ui-express";
 import path from "path";
 
 import { RegisterRoutes } from "./generated/routes.js";
+import { idempotencyInterceptor } from "./middlewares/idempotencyMiddleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(idempotencyInterceptor);
 
 const setupSwagger = async () => {
   try {

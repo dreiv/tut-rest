@@ -18,6 +18,7 @@
     "better-sqlite3": "^12.11.1",
     "drizzle-orm": "^0.39.0",
     "express": "^5.2.1",
+    "node-cache": "^5.1.2",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.2.1"
   },
