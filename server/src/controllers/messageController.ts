@@ -13,6 +13,15 @@ import {
 import { MessageService } from "@/services/messageService.js";
 import { Message } from "@/models/message.js";
 
+export interface PaginatedMessagesResponse {
+  data: Message[];
+  meta: {
+    totalRecords: number;
+    currentPage: number;
+    limit: number;
+    totalPages: number;
+  };
+}
 export interface MessageCreateRequest {
   text: string;
 }
@@ -26,7 +35,7 @@ export class MessageController extends Controller {
   private messageService = new MessageService();
 
   /**
-   * Fetch messages with support for search, categorization, range filtering, and custom sorting
+   * Fetch messages with support for search, filters, sorting, and offset pagination
    */
   @Get("")
   public async getMessages(
@@ -36,7 +45,9 @@ export class MessageController extends Controller {
     @Query() isRead?: boolean,
     @Query() sortBy?: "createdAt" | "priority",
     @Query() order?: "asc" | "desc",
-  ): Promise<Message[]> {
+    @Query() page?: number,
+    @Query() limit?: number,
+  ): Promise<PaginatedMessagesResponse> {
     return this.messageService.getAll({
       search,
       category,
@@ -44,6 +55,8 @@ export class MessageController extends Controller {
       isRead,
       sortBy,
       order,
+      page,
+      limit,
     });
   }
 

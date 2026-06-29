@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Fetch messages with support for search, categorization, range filtering, and custom sorting */
+        /** @description Fetch messages with support for search, filters, sorting, and offset pagination */
         get: operations["GetMessages"];
         put?: never;
         /** @description Create a new message */
@@ -55,6 +55,19 @@ export interface components {
             isRead: boolean;
             createdAt: string;
         };
+        PaginatedMessagesResponse: {
+            data: components["schemas"]["Message"][];
+            meta: {
+                /** Format: double */
+                totalPages: number;
+                /** Format: double */
+                limit: number;
+                /** Format: double */
+                currentPage: number;
+                /** Format: double */
+                totalRecords: number;
+            };
+        };
         ErrorMessage: {
             error: string;
         };
@@ -79,6 +92,8 @@ export interface operations {
                 isRead?: boolean;
                 sortBy?: "createdAt" | "priority";
                 order?: "asc" | "desc";
+                page?: number;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -92,7 +107,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Message"][];
+                    "application/json": components["schemas"]["PaginatedMessagesResponse"];
                 };
             };
         };

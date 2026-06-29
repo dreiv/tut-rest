@@ -45,6 +45,49 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"PaginatedMessagesResponse": {
+				"properties": {
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/Message"
+						},
+						"type": "array"
+					},
+					"meta": {
+						"properties": {
+							"totalPages": {
+								"type": "number",
+								"format": "double"
+							},
+							"limit": {
+								"type": "number",
+								"format": "double"
+							},
+							"currentPage": {
+								"type": "number",
+								"format": "double"
+							},
+							"totalRecords": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"totalPages",
+							"limit",
+							"currentPage",
+							"totalRecords"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"data",
+					"meta"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ErrorMessage": {
 				"properties": {
 					"error": {
@@ -88,16 +131,13 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/Message"
-									},
-									"type": "array"
+									"$ref": "#/components/schemas/PaginatedMessagesResponse"
 								}
 							}
 						}
 					}
 				},
-				"description": "Fetch messages with support for search, categorization, range filtering, and custom sorting",
+				"description": "Fetch messages with support for search, filters, sorting, and offset pagination",
 				"security": [],
 				"parameters": [
 					{
@@ -160,6 +200,24 @@
 								"asc",
 								"desc"
 							]
+						}
+					},
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
 						}
 					}
 				]

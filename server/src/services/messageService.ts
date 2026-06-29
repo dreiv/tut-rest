@@ -1,6 +1,6 @@
 import { db } from "@/models/db.js";
 import { messages } from "@/models/message.js";
-import { eq, like, gte, and, asc, desc } from "drizzle-orm";
+import { eq, like, gte, and, asc, desc, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface MessageQueryFilters {
@@ -10,6 +10,8 @@ export interface MessageQueryFilters {
   isRead?: boolean;
   sortBy?: "createdAt" | "priority";
   order?: "asc" | "desc";
+  page?: number;
+  limit?: number;
 }
 
 export class MessageService {
@@ -21,28 +23,26 @@ export class MessageService {
       isRead,
       sortBy = "createdAt",
       order = "desc",
+      page = 1,
+      limit = 10,
     } = filters;
 
     const conditions = [];
 
-    if (category) {
-      conditions.push(eq(messages.category, category));
-    }
-
-    if (minPriority !== undefined) {
+    if (category) conditions.push(eq(messages.category, category));
+    if (minPriority !== undefined)
       conditions.push(gte(messages.priority, minPriority));
-    }
+    if (isRead !== undefined) conditions.push(eq(messages.isRead, isRead));
+    if (search) conditions.push(like(messages.text, `%${search}%`));
 
-    if (isRead !== undefined) {
-      conditions.push(eq(messages.isRead, isRead));
+    let countQuery = db.select({ total: count() }).from(messages);
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions)) as typeof countQuery;
     }
-
-    if (search) {
-      conditions.push(like(messages.text, `%${search}%`));
-    }
+    const countResult = await countQuery;
+    const totalRecords = countResult[0]?.total || 0;
 
     let query = db.select().from(messages);
-
     if (conditions.length > 0) {
       query = query.where(and(...conditions)) as typeof query;
     }
@@ -51,7 +51,19 @@ export class MessageService {
       sortBy === "priority" ? messages.priority : messages.createdAt;
     const sortOrder = order === "asc" ? asc(sortColumn) : desc(sortColumn);
 
-    return query.orderBy(sortOrder);
+    const offset = (page - 1) * limit;
+
+    const data = await query.orderBy(sortOrder).limit(limit).offset(offset);
+
+    return {
+      data,
+      meta: {
+        totalRecords,
+        currentPage: page,
+        limit,
+        totalPages: Math.ceil(totalRecords / limit),
+      },
+    };
   }
 
   public async getById(id: string) {
