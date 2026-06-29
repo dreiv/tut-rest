@@ -14,6 +14,7 @@ import {
 import { MessageService } from "@/services/messageService.js";
 import { Message } from "@/models/schema.js";
 import { idempotencyInterceptor } from "@/middlewares/idempotencyMiddleware.js";
+import { rateLimiter } from "@/middlewares/rateLimiterMiddleware.js";
 
 export interface PaginatedMessagesResponse {
   data: Message[];
@@ -40,6 +41,7 @@ export class MessageController extends Controller {
    * Fetch messages with support for search, filters, sorting, and offset pagination
    */
   @Get("")
+  @Middlewares(rateLimiter)
   public async getMessages(
     @Query() search?: string,
     @Query() category?: "system" | "user" | "billing",
@@ -82,7 +84,7 @@ export class MessageController extends Controller {
    * Create a new message
    */
   @Post("")
-  @Middlewares(idempotencyInterceptor)
+  @Middlewares(idempotencyInterceptor, rateLimiter(5))
   async createMessage(
     @Body() requestBody: MessageCreateRequest,
   ): Promise<Message> {
