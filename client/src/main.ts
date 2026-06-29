@@ -1,9 +1,8 @@
 import "./style.css";
-import type { components } from "./api-types.d.ts";
+import { api } from "./api.js";
+import type { Message, MessageQueryParams } from "./api.js";
 
-type Message = components["schemas"]["Message"];
-type MessageCreateRequest = components["schemas"]["MessageCreateRequest"];
-
+// DOM Node Element Selectors
 const messageList = document.getElementById("message-list") as HTMLUListElement;
 const statusContainer = document.getElementById(
   "status-container",
@@ -12,6 +11,29 @@ const messageForm = document.getElementById("message-form") as HTMLFormElement;
 const newMessageInput = document.getElementById(
   "new-message-text",
 ) as HTMLInputElement;
+
+const filterForm = document.getElementById("filter-form") as HTMLFormElement;
+const searchInput = document.getElementById("search-input") as HTMLInputElement;
+const categoryFilter = document.getElementById(
+  "category-filter",
+) as HTMLSelectElement;
+const priorityFilter = document.getElementById(
+  "priority-filter",
+) as HTMLSelectElement;
+const sortBySelect = document.getElementById("sort-by") as HTMLSelectElement;
+const sortOrderSelect = document.getElementById(
+  "sort-order",
+) as HTMLSelectElement;
+
+const prevPageBtn = document.getElementById(
+  "prev-page-btn",
+) as HTMLButtonElement;
+const nextPageBtn = document.getElementById(
+  "next-page-btn",
+) as HTMLButtonElement;
+const pageIndicator = document.getElementById(
+  "page-indicator",
+) as HTMLSpanElement;
 
 const editDialog = document.getElementById("edit-dialog") as HTMLDialogElement;
 const editDialogForm = document.getElementById(
@@ -24,7 +46,30 @@ const cancelEditBtn = document.getElementById(
   "cancel-edit-btn",
 ) as HTMLButtonElement;
 
-let messages: Message[] = [];
+// Centralized Reactive Client Application State Store
+const state = {
+  messages: [] as Message[],
+  meta: {
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 10,
+  },
+  filters: {
+    search: "",
+    category: undefined,
+    minPriority: undefined,
+    sortBy: "createdAt",
+    order: "desc",
+  } as {
+    search: string;
+    category: "system" | "user" | "billing" | undefined;
+    minPriority: number | undefined;
+    sortBy: "createdAt" | "priority";
+    order: "asc" | "desc";
+  },
+};
+
 let currentlyEditingId: string | null = null;
 
 function renderStatus(message: string, isError = false) {
@@ -34,19 +79,36 @@ function renderStatus(message: string, isError = false) {
     : "";
 }
 
-async function fetchMessages() {
-  renderStatus("Loading messages...");
+/**
+ * Fetch messages orchestrator combining state configurations into URL query attributes
+ */
+async function loadMessages() {
+  renderStatus("Loading matched messages feed...");
   try {
-    const response = await fetch("/api/v1/messages");
-    if (!response.ok)
-      throw new Error(`Server responded with status: ${response.status}`);
-    messages = (await response.json()) as Message[];
+    const queryParams: MessageQueryParams = {
+      page: state.meta.currentPage,
+      limit: state.meta.limit,
+      sortBy: state.filters.sortBy,
+      order: state.filters.order,
+    };
+
+    if (state.filters.search) queryParams.search = state.filters.search;
+    if (state.filters.category) queryParams.category = state.filters.category;
+    if (state.filters.minPriority !== undefined)
+      queryParams.minPriority = state.filters.minPriority;
+
+    const response = await api.getMessages(queryParams);
+
+    state.messages = response.data;
+    state.meta = response.meta;
+
     renderStatus("");
     renderMessages();
+    renderPaginationControls();
   } catch (error) {
-    console.error("Fetch error:", error);
+    console.error("Fetch error cycle captured:", error);
     renderStatus(
-      "Failed to load messages. Please ensure the backend server is running.",
+      "Failed to synchronize with messaging service feed parameters.",
       true,
     );
   }
@@ -56,12 +118,12 @@ function renderMessages() {
   if (!messageList) return;
   messageList.innerHTML = "";
 
-  if (messages.length === 0) {
-    renderStatus("No messages available. Add some via your API!");
+  if (state.messages.length === 0) {
+    renderStatus("No messages found matching your active filter options.");
     return;
   }
 
-  messages.forEach((msg) => {
+  state.messages.forEach((msg) => {
     const li = document.createElement("li");
     li.className = "message-item";
 
@@ -88,60 +150,82 @@ function renderMessages() {
   });
 }
 
+function renderPaginationControls() {
+  if (!pageIndicator || !prevPageBtn || !nextPageBtn) return;
+
+  pageIndicator.textContent = `Page ${state.meta.currentPage} of ${state.meta.totalPages || 1} (Total: ${state.meta.totalRecords} logs)`;
+
+  prevPageBtn.disabled = state.meta.currentPage <= 1;
+  nextPageBtn.disabled = state.meta.currentPage >= state.meta.totalPages;
+}
+
+filterForm?.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  state.filters.search = searchInput.value.trim();
+  state.filters.category = (categoryFilter.value || undefined) as any;
+  state.filters.minPriority = priorityFilter.value
+    ? Number(priorityFilter.value)
+    : undefined;
+  state.filters.sortBy = sortBySelect.value as any;
+  state.filters.order = sortOrderSelect.value as any;
+
+  state.meta.currentPage = 1;
+  loadMessages();
+});
+
+prevPageBtn?.addEventListener("click", () => {
+  if (state.meta.currentPage > 1) {
+    state.meta.currentPage--;
+    loadMessages();
+  }
+});
+
+nextPageBtn?.addEventListener("click", () => {
+  if (state.meta.currentPage < state.meta.totalPages) {
+    state.meta.currentPage++;
+    loadMessages();
+  }
+});
+
 async function handleCreateMessage(e: SubmitEvent) {
   e.preventDefault();
-  const text = newMessageInput.value;
+  const text = newMessageInput.value.trim();
   if (!text) return;
 
-  renderStatus("Creating message...");
-  const payload: MessageCreateRequest = { text };
-
+  renderStatus("Creating message safely...");
   try {
-    const response = await fetch("/api/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) throw new Error("Failed to create message");
-
-    const newMessage = (await response.json()) as Message;
-    messages.push(newMessage);
-    renderMessages();
-    renderStatus("");
+    await api.createMessage(text);
     newMessageInput.value = "";
+
+    state.meta.currentPage = 1;
+    loadMessages();
   } catch (error) {
-    console.error("Create error:", error);
-    renderStatus("Failed to create message.", true);
+    console.error("Creation workflow error captured:", error);
+    renderStatus("Failed to append message safely onto backend service.", true);
   }
 }
 
 async function handleDelete(id: string) {
-  if (!id) return;
+  if (
+    !id ||
+    !confirm("Are you sure you want to permanently delete this log record?")
+  )
+    return;
 
-  if (!confirm("Are you sure you want to delete this message?")) return;
-
-  renderStatus("Deleting message...");
+  renderStatus("Removing target record...");
   try {
-    const response = await fetch(`/api/v1/messages/${id}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) throw new Error("Failed to delete message");
-
-    messages = messages.filter((m) => String(m.id) !== id);
-    renderMessages();
-    renderStatus("");
+    await api.deleteMessage(id);
+    loadMessages(); // Refresh layout to adjust pagination limits
   } catch (error) {
-    console.error("Delete error:", error);
-    renderStatus("Failed to delete message.", true);
+    console.error("Deletion task exception:", error);
+    renderStatus("Failed to clean target log item from dataset context.", true);
   }
 }
 
 function handleEdit(id: string) {
   if (!id) return;
-
-  const msg = messages.find((m) => String(m.id) === id);
+  const msg = state.messages.find((m) => String(m.id) === id);
   if (!msg) return;
 
   currentlyEditingId = id;
@@ -153,32 +237,19 @@ editDialogForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!currentlyEditingId) return;
 
-  const newText = editMessageInput.value;
+  const newText = editMessageInput.value.trim();
   if (!newText) return;
 
-  const id = currentlyEditingId;
+  const targetId = currentlyEditingId;
   editDialog.close();
 
-  renderStatus("Updating message...");
-  const payload: MessageCreateRequest = { text: newText };
-
+  renderStatus("Saving updated descriptions...");
   try {
-    const response = await fetch(`/api/v1/messages/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) throw new Error("Failed to update message");
-
-    const updatedMsg = (await response.json()) as Message;
-
-    messages = messages.map((m) => (String(m.id) === id ? updatedMsg : m));
-    renderMessages();
-    renderStatus("");
+    await api.updateMessage(targetId, newText);
+    loadMessages();
   } catch (error) {
-    console.error("Update error:", error);
-    renderStatus("Failed to update message.", true);
+    console.error("Mutation update anomaly captured:", error);
+    renderStatus("Failed to persist changes into data context.", true);
   } finally {
     currentlyEditingId = null;
   }
@@ -191,4 +262,4 @@ cancelEditBtn?.addEventListener("click", () => {
 
 messageForm?.addEventListener("submit", handleCreateMessage);
 
-fetchMessages();
+loadMessages();

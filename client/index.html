@@ -24,12 +24,58 @@
         </form>
       </section>
 
+      <section class="form-section">
+        <h2>Filters & Sorting Options</h2>
+        <form id="filter-form">
+          <div class="filter-grid">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search message text..."
+            />
+
+            <select id="category-filter">
+              <option value="">All Categories</option>
+              <option value="user">User</option>
+              <option value="system">System</option>
+              <option value="billing">Billing</option>
+            </select>
+
+            <select id="priority-filter">
+              <option value="">All Priorities</option>
+              <option value="1">Priority 1 (Lowest)</option>
+              <option value="2">Priority 2</option>
+              <option value="3">Priority 3</option>
+              <option value="4">Priority 4</option>
+              <option value="5">Priority 5 (Highest)</option>
+            </select>
+
+            <select id="sort-by">
+              <option value="createdAt">Sort by Date</option>
+              <option value="priority">Sort by Priority</option>
+            </select>
+
+            <select id="sort-order">
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
+            </select>
+
+            <button type="submit" id="filter-btn">Apply Filters</button>
+          </div>
+        </form>
+      </section>
+
       <hr />
 
       <ul id="message-list"></ul>
+
+      <div id="pagination-container" class="pagination-layout">
+        <button id="prev-page-btn" disabled>◀ Previous</button>
+        <span id="page-indicator">Page 1 of 1</span>
+        <button id="next-page-btn" disabled>Next ▶</button>
+      </div>
     </div>
 
-    <!-- Edit Message Dialog Modal -->
     <dialog id="edit-dialog">
       <form method="dialog" id="edit-dialog-form">
         <h3>Edit Message</h3>

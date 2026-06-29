@@ -7,7 +7,8 @@
   "scripts": {
     "tsoa:gen": "tsoa spec-and-routes",
     "build:types": "npm run tsoa:gen",
-    "dev": "npm run tsoa:gen && tsx watch src/index.ts",
+    "predev": "npm run tsoa:gen",
+    "dev": "tsx watch src/index.ts",
     "build": "npm run tsoa:gen && tsc",
     "start": "node dist/index.js",
     "db:seed": "tsx src/models/seed.ts",

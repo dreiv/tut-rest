@@ -1,6 +1,7 @@
 import express from "express";
 import * as swaggerUi from "swagger-ui-express";
 import path from "path";
+import fs from "fs";
 
 import { RegisterRoutes } from "./generated/routes.js";
 import { idempotencyInterceptor } from "./middlewares/idempotencyMiddleware.js";
@@ -11,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(idempotencyInterceptor);
 
-const setupSwagger = async () => {
+const setupSwagger = () => {
   try {
     const swaggerSpecPath = path.join(
       process.cwd(),
@@ -20,19 +21,20 @@ const setupSwagger = async () => {
       "swagger.json",
     );
 
-    const { default: swaggerDocument } = await import(swaggerSpecPath, {
-      with: { type: "json" },
-    });
+    const swaggerData = fs.readFileSync(swaggerSpecPath, "utf-8");
+    const swaggerDocument = JSON.parse(swaggerData);
 
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   } catch (error) {
     console.log(
       "⚠️ Run 'npm run tsoa:gen' first to generate your API documentation UI.",
     );
+
+    console.error("Swagger Setup Error:", error);
   }
 };
 
-await setupSwagger();
+setupSwagger();
 
 RegisterRoutes(app);
 

@@ -11,11 +11,7 @@
 
   /* FONT */
   --FF: "Nunito", sans-serif;
-  --FS: clamp(
-    1rem,
-    3vh,
-    1.25rem
-  ); /* Scaled down slightly for better mobile fit */
+  --FS: clamp(1rem, 3vh, 1.25rem);
   --FS-SM: clamp(1rem, 2vh, 1.15rem);
   --FS-XL: clamp(1.75rem, 5vw, 2.5rem);
 
@@ -42,7 +38,6 @@ body {
   display: flex;
   flex-direction: column;
   margin: 0 auto;
-  /* Reduced default padding for mobile screens */
   padding: var(--space-md) var(--space-sm);
   background-color: var(--bg);
   color: var(--text);
@@ -69,25 +64,35 @@ body {
   margin-bottom: var(--space-md);
 }
 
-/* Stacks input and button vertically on small screens */
+/* Base Stack Form Controls */
 #message-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-#new-message-text {
+#new-message-text,
+#search-input,
+select {
   width: 100%;
-  padding: 12px; /* larger tap area */
+  padding: 12px;
   border: 1px solid var(--border);
   border-radius: 4px;
   background-color: var(--bg);
   color: var(--text);
   box-sizing: border-box;
+  font-size: var(--FS-SM);
+}
+
+/* Flexbox Grid Toolbar for Filters on Mobile */
+.filter-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 button {
-  padding: 12px var(--space-md); /* larger touch target */
+  padding: 12px var(--space-md);
   background-color: var(--accent);
   color: white;
   border: none;
@@ -97,10 +102,34 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: var(--FS-SM);
 }
 
-button:hover {
+button:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+button:disabled {
+  background-color: var(--border);
+  color: var(--gray);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Pagination Control Strip Styling */
+.pagination-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-xl);
+  padding: var(--space-md) 0;
+  gap: var(--space-md);
+}
+
+#page-indicator {
+  font-size: var(--FS-SM);
+  font-weight: bold;
+  color: var(--gray);
 }
 
 #message-list {
@@ -115,26 +144,23 @@ button:hover {
   border-radius: 6px;
   border: 1px solid var(--border);
   display: flex;
-  flex-direction: column; /* Stack text and buttons on narrow screens */
+  flex-direction: column;
   gap: var(--space-md);
 }
 
 .msg-text {
   font-size: var(--FS-SM);
-  word-break: break-word; /* Prevents long text from breaking layout */
+  word-break: break-word;
 }
 
-/* Container for Emoji Buttons */
 .action-buttons {
   display: flex;
   gap: var(--space-sm);
-  justify-content: flex-end; /* Push to the right side */
+  justify-content: flex-end;
 }
 
-/* Specific styling for icon buttons */
 .edit-btn,
 .delete-btn {
-  /* 44px min-height/width is the Apple Human Interface Guideline standard for touch targets */
   min-width: 44px;
   min-height: 44px;
   font-size: 1.2rem;
@@ -157,16 +183,14 @@ button:hover {
   color: var(--gray);
 }
 
-/* ========================================== */
-/* Native HTML Dialog / Modal Styling         */
-/* ========================================== */
+/* Native HTML Dialog Modal Styling */
 dialog {
   background-color: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: var(--space-md);
-  width: 90%; /* Responsive width for mobile */
+  width: 90%;
   max-width: 400px;
   box-sizing: border-box;
 }
@@ -187,9 +211,7 @@ dialog::backdrop {
   box-sizing: border-box;
 }
 
-/* ========================================== */
-/* Media Queries for Desktop / Larger Screens */
-/* ========================================== */
+/* Media Queries for Desktop Layout Enhancement */
 @media (min-width: 600px) {
   body {
     padding: var(--space-xl) var(--space-lg);
@@ -203,7 +225,6 @@ dialog::backdrop {
     padding: var(--space-lg);
   }
 
-  /* Un-stack the form for desktop */
   #message-form {
     flex-direction: row;
   }
@@ -212,7 +233,13 @@ dialog::backdrop {
     flex: 1;
   }
 
-  /* Keep messages side-by-side on desktop */
+  /* Expand toolbar into a clean responsive grid on desktop */
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(4, 1fr) auto;
+    align-items: center;
+  }
+
   .message-item {
     flex-direction: row;
     justify-content: space-between;
