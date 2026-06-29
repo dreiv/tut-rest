@@ -1,6 +1,6 @@
 import { db } from "@/models/db.js";
 import { messages } from "@/models/schema.js";
-import { eq, like, gte, and, asc, desc, count } from "drizzle-orm";
+import { eq, gte, and, asc, desc, count, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface MessageQueryFilters {
@@ -21,7 +21,7 @@ export class MessageService {
       category,
       minPriority,
       isRead,
-      sortBy = "createdAt",
+      sortBy,
       order = "desc",
       page = 1,
       limit = 10,
@@ -33,7 +33,21 @@ export class MessageService {
     if (minPriority !== undefined)
       conditions.push(gte(messages.priority, minPriority));
     if (isRead !== undefined) conditions.push(eq(messages.isRead, isRead));
-    if (search) conditions.push(like(messages.text, `%${search}%`));
+
+    let safeFtsQuery = "";
+    if (search) {
+      const cleanSearch = search.trim().replace(/[^a-zA-Z0-9 ]/g, "");
+      if (cleanSearch.length > 0) {
+        safeFtsQuery = `"${cleanSearch}"*`;
+        conditions.push(
+          sql`${messages.id} IN (
+            SELECT id
+            FROM messages_fts
+            WHERE messages_fts MATCH ${safeFtsQuery}
+          )`,
+        );
+      }
+    }
 
     let countQuery = db.select({ total: count() }).from(messages);
     if (conditions.length > 0) {
@@ -47,12 +61,19 @@ export class MessageService {
       query = query.where(and(...conditions)) as typeof query;
     }
 
-    const sortColumn =
-      sortBy === "priority" ? messages.priority : messages.createdAt;
-    const sortOrder = order === "asc" ? asc(sortColumn) : desc(sortColumn);
+    let sortOrder;
+    if (safeFtsQuery && !sortBy) {
+      sortOrder = asc(
+        sql`(SELECT rank FROM messages_fts WHERE messages_fts.id = ${messages.id} AND messages_fts MATCH ${safeFtsQuery})`,
+      );
+    } else {
+      const activeSortBy = sortBy || "createdAt";
+      const sortColumn =
+        activeSortBy === "priority" ? messages.priority : messages.createdAt;
+      sortOrder = order === "asc" ? asc(sortColumn) : desc(sortColumn);
+    }
 
     const offset = (page - 1) * limit;
-
     const data = await query.orderBy(sortOrder).limit(limit).offset(offset);
 
     return {

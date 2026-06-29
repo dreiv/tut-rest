@@ -2,6 +2,7 @@ import { db } from "./db.js";
 import { messages } from "./schema.js";
 import { randomUUID } from "crypto";
 import { faker } from "@faker-js/faker";
+import { sql } from "drizzle-orm";
 
 export async function seedDatabase() {
   const existing = await db.select().from(messages);
@@ -39,13 +40,14 @@ export async function seedDatabase() {
     console.log("🚀 Batch-inserting rich dataset into SQLite via Drizzle...");
     await db.insert(messages).values(starterMessages);
 
-    console.log(
-      `✅ Seeding complete! Added ${starterMessages.length} highly unique records with filterable fields.`,
+    console.log("⚡ Syncing FTS5 Index with seed records...");
+    await db.run(
+      sql`INSERT INTO messages_fts(id, text) SELECT id, text FROM messages;`,
     );
+
+    console.log("✅ Seed complete.");
   } else {
-    console.log(
-      `⚠️ Database already contains ${existing.length} records. Skipping seed.`,
-    );
+    console.log(`⚠️ Database already contains ${existing.length} records.`);
   }
 }
 
