@@ -88,14 +88,48 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ErrorMessage": {
+			"ProblemDetails": {
 				"properties": {
-					"error": {
+					"type": {
 						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"status": {
+						"type": "number",
+						"format": "double"
+					},
+					"detail": {
+						"type": "string"
+					},
+					"instance": {
+						"type": "string"
+					},
+					"invalidParams": {
+						"items": {
+							"properties": {
+								"reason": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"reason",
+								"name"
+							],
+							"type": "object"
+						},
+						"type": "array"
 					}
 				},
 				"required": [
-					"error"
+					"type",
+					"title",
+					"status",
+					"detail"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -141,7 +175,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}
@@ -151,7 +185,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}
@@ -260,7 +294,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}
@@ -270,7 +304,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}
@@ -300,24 +334,17 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"$ref": "#/components/schemas/Message"
-										},
-										{
-											"$ref": "#/components/schemas/ErrorMessage"
-										}
-									]
+									"$ref": "#/components/schemas/Message"
 								}
 							}
 						}
 					},
 					"404": {
-						"description": "Message not found",
+						"description": "Message Not Found",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}
@@ -344,14 +371,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"$ref": "#/components/schemas/Message"
-										},
-										{
-											"$ref": "#/components/schemas/ErrorMessage"
-										}
-									]
+									"$ref": "#/components/schemas/Message"
 								}
 							}
 						}
@@ -361,17 +381,17 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}
 					},
 					"404": {
-						"description": "Message not found to update",
+						"description": "Message Not Found",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}
@@ -408,32 +428,25 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"properties": {
-												"message": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"message"
-											],
-											"type": "object"
-										},
-										{
-											"$ref": "#/components/schemas/ErrorMessage"
+									"properties": {
+										"message": {
+											"type": "string"
 										}
-									]
+									},
+									"required": [
+										"message"
+									],
+									"type": "object"
 								}
 							}
 						}
 					},
 					"404": {
-						"description": "Message not found to delete",
+						"description": "Message Not Found",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ErrorMessage"
+									"$ref": "#/components/schemas/ProblemDetails"
 								}
 							}
 						}

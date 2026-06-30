@@ -1,66 +1,21 @@
 import express from "express";
-import * as swaggerUi from "swagger-ui-express";
-import path from "path";
-import fs from "fs";
 
 import { RegisterRoutes } from "./generated/routes.js";
+import { globalErrorHandler } from "./middlewares/errorHandlerMiddleware.js";
+import { setupSwagger } from "./config/swagger.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 app.set("trust proxy", 1);
 app.use(express.json());
 
+// Register automated controller routes
 RegisterRoutes(app);
+// Attach TSOA OpenAPI documentation UI route handler
+setupSwagger(app);
 
-const setupSwagger = () => {
-  try {
-    const swaggerSpecPath = path.join(
-      process.cwd(),
-      "src",
-      "generated",
-      "swagger.json",
-    );
-
-    const swaggerData = fs.readFileSync(swaggerSpecPath, "utf-8");
-    const swaggerDocument = JSON.parse(swaggerData);
-
-    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  } catch (error) {
-    console.log(
-      "⚠️ Run 'npm run tsoa:gen' first to generate your API documentation UI.",
-    );
-    console.error("Swagger Setup Error:", error);
-  }
-};
-
-setupSwagger();
-
-app.use(
-  (
-    err: any,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction,
-  ) => {
-    console.error(
-      "❌ Handled Global Backend Error:",
-      err.stack || err.message || err,
-    );
-
-    const status = err.status || 500;
-
-    const clientMessage =
-      IS_PRODUCTION && status === 500
-        ? "An unexpected internal server error occurred."
-        : err.message || "An unexpected internal server error occurred.";
-
-    res.status(status).json({
-      error: clientMessage,
-    });
-  },
-);
+app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

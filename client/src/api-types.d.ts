@@ -68,8 +68,17 @@ export interface components {
                 totalRecords: number;
             };
         };
-        ErrorMessage: {
-            error: string;
+        ProblemDetails: {
+            type: string;
+            title: string;
+            /** Format: double */
+            status: number;
+            detail: string;
+            instance?: string;
+            invalidParams?: {
+                reason: string;
+                name: string;
+            }[];
         };
         MessageCreateRequest: {
             text: string;
@@ -116,7 +125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Too Many Requests */
@@ -125,7 +134,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -158,7 +167,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Too Many Requests */
@@ -167,7 +176,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -189,16 +198,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Message"] | components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["Message"];
                 };
             };
-            /** @description Message not found */
+            /** @description Message Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -224,7 +233,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Message"] | components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["Message"];
                 };
             };
             /** @description Bad Request */
@@ -233,16 +242,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
-            /** @description Message not found to update */
+            /** @description Message Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -266,16 +275,16 @@ export interface operations {
                 content: {
                     "application/json": {
                         message: string;
-                    } | components["schemas"]["ErrorMessage"];
+                    };
                 };
             };
-            /** @description Message not found to delete */
+            /** @description Message Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorMessage"];
+                    "application/json": components["schemas"]["ProblemDetails"];
                 };
             };
         };

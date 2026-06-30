@@ -25,12 +25,18 @@ export interface PaginatedMessagesResponse {
     totalPages: number;
   };
 }
+
 export interface MessageCreateRequest {
   text: string;
 }
 
-export interface ErrorMessage {
-  error: string;
+export interface ProblemDetails {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  instance?: string;
+  invalidParams?: Array<{ name: string; reason: string }>;
 }
 
 @Route("api/v1/messages")
@@ -42,8 +48,8 @@ export class MessageController extends Controller {
    */
   @Get("")
   @Middlewares(rateLimiter())
-  @Response<ErrorMessage>(400, "Bad Request")
-  @Response<ErrorMessage>(429, "Too Many Requests")
+  @Response<ProblemDetails>(400, "Bad Request")
+  @Response<ProblemDetails>(429, "Too Many Requests")
   public async getMessages(
     @Query() search?: string,
     @Query() category?: "system" | "user" | "billing",
@@ -70,14 +76,14 @@ export class MessageController extends Controller {
    * Fetch a single message by ID
    */
   @Get("{id}")
-  @Response<ErrorMessage>(404, "Message not found")
-  public async getMessageById(
-    @Path() id: string,
-  ): Promise<Message | ErrorMessage> {
+  @Response<ProblemDetails>(404, "Message Not Found")
+  public async getMessageById(@Path() id: string): Promise<Message> {
     const message = await this.messageService.getById(id);
     if (!message) {
-      this.setStatus(404);
-      return { error: "Message not found" };
+      throw {
+        status: 404,
+        message: `The message log with ID '${id}' could not be located.`,
+      };
     }
     return message;
   }
@@ -87,8 +93,8 @@ export class MessageController extends Controller {
    */
   @Post("")
   @Middlewares(idempotencyInterceptor, rateLimiter(5))
-  @Response<ErrorMessage>(400, "Bad Request")
-  @Response<ErrorMessage>(429, "Too Many Requests")
+  @Response<ProblemDetails>(400, "Bad Request")
+  @Response<ProblemDetails>(429, "Too Many Requests")
   public async createMessage(
     @Body() requestBody: MessageCreateRequest,
   ): Promise<Message> {
@@ -103,16 +109,18 @@ export class MessageController extends Controller {
    * Update an existing message text description
    */
   @Put("{id}")
-  @Response<ErrorMessage>(400, "Bad Request")
-  @Response<ErrorMessage>(404, "Message not found to update")
+  @Response<ProblemDetails>(400, "Bad Request")
+  @Response<ProblemDetails>(404, "Message Not Found")
   public async updateMessage(
     @Path() id: string,
     @Body() requestBody: MessageCreateRequest,
-  ): Promise<Message | ErrorMessage> {
+  ): Promise<Message> {
     const wasUpdated = await this.messageService.update(id, requestBody.text);
     if (!wasUpdated) {
-      this.setStatus(404);
-      return { error: "Message not found to update" };
+      throw {
+        status: 404,
+        message: `Failed to modify target message entry: ID '${id}' not found.`,
+      };
     }
     return { id, text: requestBody.text } as Message;
   }
@@ -121,14 +129,14 @@ export class MessageController extends Controller {
    * Remove a message
    */
   @Delete("{id}")
-  @Response<ErrorMessage>(404, "Message not found to delete")
-  public async deleteMessage(
-    @Path() id: string,
-  ): Promise<{ message: string } | ErrorMessage> {
+  @Response<ProblemDetails>(404, "Message Not Found")
+  public async deleteMessage(@Path() id: string): Promise<{ message: string }> {
     const wasDeleted = await this.messageService.delete(id);
     if (!wasDeleted) {
-      this.setStatus(404);
-      return { error: "Message not found to delete" };
+      throw {
+        status: 404,
+        message: `Failed to remove requested message item: ID '${id}' not found.`,
+      };
     }
     return { message: "Message deleted successfully" };
   }
