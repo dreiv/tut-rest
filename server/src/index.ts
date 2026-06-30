@@ -10,11 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 app.set("trust proxy", 1);
 app.use(express.json());
-
-app.use(
-  "/errors",
-  express.static(path.join(process.cwd(), "public", "errors")),
-);
+app.use(express.static(path.join(process.cwd(), "public")));
 
 // Register automated controller routes
 RegisterRoutes(app);
