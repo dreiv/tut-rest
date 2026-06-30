@@ -14,6 +14,13 @@ export interface MessageQueryFilters {
   limit?: number;
 }
 
+export interface MessageCreationOverrides {
+  category?: "system" | "user" | "billing";
+  priority?: number;
+}
+
+const MAX_PAGINATION_LIMIT = 100;
+
 export class MessageService {
   public async getAll(filters: MessageQueryFilters = {}) {
     const {
@@ -24,8 +31,14 @@ export class MessageService {
       sortBy,
       order = "desc",
       page = 1,
-      limit = 10,
     } = filters;
+
+    let limit = filters.limit ?? 10;
+    if (limit > MAX_PAGINATION_LIMIT) {
+      limit = MAX_PAGINATION_LIMIT;
+    } else if (limit <= 0) {
+      limit = 10;
+    }
 
     const conditions = [];
 
@@ -36,7 +49,8 @@ export class MessageService {
 
     let safeFtsQuery = "";
     if (search) {
-      const cleanSearch = search.trim().replace(/[^a-zA-Z0-9 ]/g, "");
+      // Strips FTS5 punctuation tokens but preserves Unicode letters/numbers across languages
+      const cleanSearch = search.trim().replace(/[^\p{L}\p{N}\s]/gu, "");
       if (cleanSearch.length > 0) {
         safeFtsQuery = `"${cleanSearch}"*`;
       }
@@ -86,7 +100,8 @@ export class MessageService {
       sortOrder = order === "asc" ? asc(sortColumn) : desc(sortColumn);
     }
 
-    const offset = (page - 1) * limit;
+    const safePage = Math.max(1, page);
+    const offset = (safePage - 1) * limit;
     dataQueryObj.orderBy(sortOrder).limit(limit).offset(offset);
 
     const [countResult, data] = await Promise.all([
@@ -100,7 +115,7 @@ export class MessageService {
       data,
       meta: {
         totalRecords,
-        currentPage: page,
+        currentPage: safePage,
         limit,
         totalPages: Math.ceil(totalRecords / limit),
       },
@@ -112,13 +127,13 @@ export class MessageService {
     return result[0] || null;
   }
 
-  public async create(text: string) {
+  public async create(text: string, overrides: MessageCreationOverrides = {}) {
     const newId = randomUUID();
     const newMessage = {
       id: newId,
       text,
-      category: "user" as const, // Default fallback category type
-      priority: 3, // Default fallback mid-priority
+      category: overrides.category ?? ("user" as const),
+      priority: overrides.priority ?? 3,
       isRead: false,
       createdAt: new Date().toISOString(),
     };

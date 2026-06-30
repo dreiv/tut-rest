@@ -41,7 +41,9 @@ export class MessageController extends Controller {
    * Fetch messages with support for search, filters, sorting, and offset pagination
    */
   @Get("")
-  @Middlewares(rateLimiter)
+  @Middlewares(rateLimiter())
+  @Response<ErrorMessage>(400, "Bad Request")
+  @Response<ErrorMessage>(429, "Too Many Requests")
   public async getMessages(
     @Query() search?: string,
     @Query() category?: "system" | "user" | "billing",
@@ -81,21 +83,27 @@ export class MessageController extends Controller {
   }
 
   /**
-   * Create a new message
+   * Create a new message protected against duplicate submissions and payload bursts
    */
   @Post("")
   @Middlewares(idempotencyInterceptor, rateLimiter(5))
-  async createMessage(
+  @Response<ErrorMessage>(400, "Bad Request")
+  @Response<ErrorMessage>(429, "Too Many Requests")
+  public async createMessage(
     @Body() requestBody: MessageCreateRequest,
   ): Promise<Message> {
     this.setStatus(201);
-    return this.messageService.create(requestBody.text);
+    return this.messageService.create(requestBody.text, {
+      category: "user",
+      priority: 3,
+    });
   }
 
   /**
    * Update an existing message text description
    */
   @Put("{id}")
+  @Response<ErrorMessage>(400, "Bad Request")
   @Response<ErrorMessage>(404, "Message not found to update")
   public async updateMessage(
     @Path() id: string,

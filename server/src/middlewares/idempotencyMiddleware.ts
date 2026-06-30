@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import NodeCache from "node-cache";
 
-const idempotencyCache = new NodeCache({ stdTTL: 86400, checkperiod: 600 });
+const idempotencyCache = new NodeCache({ stdTTL: 600, checkperiod: 60 });
 
 interface CachedResponse {
   statusCode: number;
@@ -33,11 +33,12 @@ export const idempotencyInterceptor = (
   const originalSend = res.send;
 
   res.send = function (body: any): Response {
-    if (res.statusCode >= 200 && res.statusCode < 500) {
+    if (res.statusCode >= 200 && res.statusCode < 300 && body) {
       const responseData: CachedResponse = {
         statusCode: res.statusCode,
         body: typeof body === "string" ? body : JSON.stringify(body),
       };
+
       idempotencyCache.set(cacheKey, responseData);
       console.log(
         `💾 Successfully cached fresh idempotent lifecycle response for key: ${cacheKey}`,

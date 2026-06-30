@@ -7,7 +7,9 @@ import { RegisterRoutes } from "./generated/routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
+app.set("trust proxy", 1);
 app.use(express.json());
 
 RegisterRoutes(app);
@@ -29,7 +31,6 @@ const setupSwagger = () => {
     console.log(
       "⚠️ Run 'npm run tsoa:gen' first to generate your API documentation UI.",
     );
-
     console.error("Swagger Setup Error:", error);
   }
 };
@@ -43,14 +44,20 @@ app.use(
     res: express.Response,
     _next: express.NextFunction,
   ) => {
-    console.error("❌ Handled Global Backend Error:", err.message || err);
+    console.error(
+      "❌ Handled Global Backend Error:",
+      err.stack || err.message || err,
+    );
 
     const status = err.status || 500;
-    const message =
-      err.message || "An unexpected internal server error occurred.";
+
+    const clientMessage =
+      IS_PRODUCTION && status === 500
+        ? "An unexpected internal server error occurred."
+        : err.message || "An unexpected internal server error occurred.";
 
     res.status(status).json({
-      error: message,
+      error: clientMessage,
     });
   },
 );

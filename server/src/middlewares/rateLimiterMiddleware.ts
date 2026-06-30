@@ -14,7 +14,6 @@ export const rateLimiter = (
 ) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const ip = req.ip || req.socket.remoteAddress || "unknown";
-
     const cacheKey = `rl:${ip}:${req.method}:${req.path}`;
 
     const currentHits = rateLimitCache.get<number>(cacheKey) || 0;

@@ -208,18 +208,7 @@ async function handleCreateMessage(e: SubmitEvent) {
   newMessageInput.value = "";
 
   try {
-    const response = await fetch("/api/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "idempotency-key": crypto.randomUUID(),
-      },
-      body: JSON.stringify({ text }),
-    });
-
-    if (!response.ok) throw new Error("Failed to create message");
-
-    const savedMessage = (await response.json()) as Message;
+    const savedMessage = await api.createMessage(text);
 
     state.messages = state.messages.map((m: Message) =>
       m.id === tempId ? savedMessage : m,

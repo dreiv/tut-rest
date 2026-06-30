@@ -14,7 +14,7 @@ export interface paths {
         /** @description Fetch messages with support for search, filters, sorting, and offset pagination */
         get: operations["GetMessages"];
         put?: never;
-        /** @description Create a new message */
+        /** @description Create a new message protected against duplicate submissions and payload bursts */
         post: operations["CreateMessage"];
         delete?: never;
         options?: never;
@@ -110,6 +110,24 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedMessagesResponse"];
                 };
             };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
         };
     };
     CreateMessage: {
@@ -132,6 +150,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
                 };
             };
         };
@@ -189,6 +225,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Message"] | components["schemas"]["ErrorMessage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorMessage"];
                 };
             };
             /** @description Message not found to update */
