@@ -27,6 +27,11 @@ export interface PaginatedMessagesResponse {
 }
 
 export interface MessageCreateRequest {
+  /**
+   * The text content of the message.
+   * @minLength 1 The message cannot be an empty string
+   * @maxLength 500 The message cannot exceed 500 characters
+   */
   text: string;
 }
 

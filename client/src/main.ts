@@ -191,7 +191,12 @@ nextPageBtn?.addEventListener("click", () => {
 async function handleCreateMessage(e: SubmitEvent) {
   e.preventDefault();
   const text = newMessageInput.value.trim();
+
   if (!text) return;
+  if (text.length > 500) {
+    renderStatus("Message cannot exceed 500 characters.", true);
+    return;
+  }
 
   const tempId = `temp-${Date.now()}`;
   const optimisticMessage: Message = {

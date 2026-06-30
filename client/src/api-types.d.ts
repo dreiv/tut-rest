@@ -81,6 +81,7 @@ export interface components {
             }[];
         };
         MessageCreateRequest: {
+            /** @description The text content of the message. */
             text: string;
         };
     };

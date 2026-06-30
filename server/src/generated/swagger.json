@@ -137,7 +137,10 @@
 			"MessageCreateRequest": {
 				"properties": {
 					"text": {
-						"type": "string"
+						"type": "string",
+						"description": "The text content of the message.",
+						"minLength": 1,
+						"maxLength": 500
 					}
 				},
 				"required": [
