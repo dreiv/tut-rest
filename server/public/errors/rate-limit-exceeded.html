@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>429 Too Many Requests - Rate Limit Exceeded</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 0 20px;
+        color: #333;
+        line-height: 1.5;
+      }
+      h1 {
+        color: #e53e3e;
+        border-bottom: 2px solid #fed7d7;
+        padding-bottom: 8px;
+      }
+      code {
+        background: #edf2f7;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Rate Limit Exceeded</h1>
+      <p>
+        Too many requests were sent to the server in a short period of time.
+      </p>
+      <h2>Resolution:</h2>
+      <p>
+        Read the <code>Retry-After</code> response header value to determine the
+        cooldown period in seconds before attempting a request retry loop.
+      </p>
+    </main>
+  </body>
+</html>

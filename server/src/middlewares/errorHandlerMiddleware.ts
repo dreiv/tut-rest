@@ -29,18 +29,22 @@ export const globalErrorHandler = (
       ? "An unexpected internal server error occurred on our systems."
       : err.message || "An unexpected internal server error occurred.";
 
+  const protocol = req.protocol;
+  const host = req.get("host");
+  const docsBaseUrl = `${protocol}://${host}/errors`;
+
   let title = "Internal Server Error";
-  let type = "https://api.yourservice.com/errors/internal-error";
+  let type = `${docsBaseUrl}/internal-error.html`;
 
   if (status === 400) {
     title = "Bad Request";
-    type = "https://api.yourservice.com/errors/bad-request";
+    type = `${docsBaseUrl}/validation-failed.html`;
   } else if (status === 404) {
     title = "Not Found";
-    type = "https://api.yourservice.com/errors/not-found";
+    type = "about:blank";
   } else if (status === 429) {
     title = "Too Many Requests";
-    type = "https://api.yourservice.com/errors/rate-limit-exceeded";
+    type = `${docsBaseUrl}/rate-limit-exceeded.html`;
   }
 
   const problemResponseBody: ProblemDetails = {
@@ -52,8 +56,7 @@ export const globalErrorHandler = (
   };
 
   if (err.fields) {
-    problemResponseBody.type =
-      "https://api.yourservice.com/errors/validation-failed";
+    problemResponseBody.type = `${docsBaseUrl}/validation-failed.html`;
     problemResponseBody.title = "Validation Failed";
     problemResponseBody.invalidParams = Object.keys(err.fields).map((key) => ({
       name: key,
@@ -62,6 +65,5 @@ export const globalErrorHandler = (
   }
 
   res.setHeader("Content-Type", "application/problem+json");
-
   res.status(status).json(problemResponseBody);
 };

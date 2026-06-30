@@ -3,12 +3,18 @@ import express from "express";
 import { RegisterRoutes } from "./generated/routes.js";
 import { globalErrorHandler } from "./middlewares/errorHandlerMiddleware.js";
 import { setupSwagger } from "./config/swagger.js";
+import path from "path";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.set("trust proxy", 1);
 app.use(express.json());
+
+app.use(
+  "/errors",
+  express.static(path.join(process.cwd(), "public", "errors")),
+);
 
 // Register automated controller routes
 RegisterRoutes(app);
